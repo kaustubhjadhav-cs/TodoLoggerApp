@@ -1048,8 +1048,21 @@
 
     <script>
         // Global state
-        let currentDate = new Date().toISOString().split('T')[0];
+        let currentDate = getTodayIST();
         let tasks = [];
+
+        // Get today's date in IST (Asia/Kolkata timezone)
+        function getTodayIST() {
+            // Using toLocaleDateString with 'en-CA' locale gives YYYY-MM-DD format
+            return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        }
+
+        // Get a date string in IST with optional day offset
+        function getDateInIST(daysOffset = 0) {
+            const now = new Date();
+            now.setDate(now.getDate() + daysOffset);
+            return now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        }
 
         // Theme management
         function initTheme() {
@@ -1090,14 +1103,14 @@
         }
 
         function goToToday() {
-            currentDate = new Date().toISOString().split('T')[0];
+            currentDate = getTodayIST();
             document.getElementById('currentDate').value = currentDate;
             updateTodayBadge();
             loadTasksForDate(currentDate);
         }
 
         function updateTodayBadge() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getTodayIST();
             const badge = document.getElementById('todayBadge');
             badge.style.display = currentDate === today ? 'inline' : 'none';
         }
@@ -1379,13 +1392,13 @@
 
         function formatDateFull(dateStr) {
             const date = new Date(dateStr + 'T00:00:00');
-            const today = new Date().toISOString().split('T')[0];
-            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            const today = getTodayIST();
+            const yesterday = getDateInIST(-1);
             
             if (dateStr === today) return 'Today';
             if (dateStr === yesterday) return 'Yesterday';
             
-            return date.toLocaleDateString('en-US', { 
+            return date.toLocaleDateString('en-IN', { 
                 weekday: 'short', 
                 month: 'short', 
                 day: 'numeric',

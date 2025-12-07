@@ -10,6 +10,19 @@ import (
 
 var db *sql.DB
 
+// IST timezone (UTC+5:30)
+var IST = time.FixedZone("IST", 5*60*60+30*60)
+
+// GetTodayIST returns today's date in IST
+func GetTodayIST() string {
+	return time.Now().In(IST).Format("2006-01-02")
+}
+
+// GetYesterdayIST returns yesterday's date in IST
+func GetYesterdayIST() string {
+	return time.Now().In(IST).AddDate(0, 0, -1).Format("2006-01-02")
+}
+
 func initDB() error {
 	var err error
 	db, err = sql.Open("sqlite3", "./todo.db")
@@ -42,7 +55,7 @@ func initDB() error {
 // CreateTask creates a new task
 func CreateTask(title, description, date string) (*Task, error) {
 	if date == "" {
-		date = time.Now().Format("2006-01-02")
+		date = GetTodayIST()
 	}
 
 	result, err := db.Exec(
@@ -176,7 +189,7 @@ func GetAllDates() ([]string, error) {
 func UpdateTaskCompletion(id int64, isCompleted bool) (*Task, error) {
 	var completedDate interface{}
 	if isCompleted {
-		completedDate = time.Now().Format("2006-01-02")
+		completedDate = GetTodayIST()
 	} else {
 		completedDate = nil
 	}

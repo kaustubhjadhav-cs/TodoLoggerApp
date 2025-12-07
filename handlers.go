@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // Response helpers
@@ -49,7 +48,7 @@ func HandleCreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Date == "" {
-		req.Date = time.Now().Format("2006-01-02")
+		req.Date = GetTodayIST()
 	}
 
 	task, err := CreateTask(req.Title, req.Description, req.Date)
@@ -65,7 +64,7 @@ func HandleCreateTask(w http.ResponseWriter, r *http.Request) {
 func HandleGetTasks(w http.ResponseWriter, r *http.Request) {
 	date := r.URL.Query().Get("date")
 	if date == "" {
-		date = time.Now().Format("2006-01-02")
+		date = GetTodayIST()
 	}
 
 	tasks, err := GetTasksByDate(date)
@@ -85,7 +84,7 @@ func HandleGetTasks(w http.ResponseWriter, r *http.Request) {
 func HandleGetDailyLog(w http.ResponseWriter, r *http.Request) {
 	date := r.URL.Query().Get("date")
 	if date == "" {
-		date = time.Now().Format("2006-01-02")
+		date = GetTodayIST()
 	}
 
 	log, err := GetDailyLog(date)
@@ -254,8 +253,8 @@ func HandleGetTask(w http.ResponseWriter, r *http.Request) {
 
 // HandleAutoRollover automatically rolls over incomplete tasks from yesterday to today
 func HandleAutoRollover(w http.ResponseWriter, r *http.Request) {
-	today := time.Now().Format("2006-01-02")
-	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+	today := GetTodayIST()
+	yesterday := GetYesterdayIST()
 
 	count, err := RolloverTasks(yesterday, today)
 	if err != nil {
@@ -273,7 +272,7 @@ func HandleAutoRollover(w http.ResponseWriter, r *http.Request) {
 
 // HandleRolloverAll rolls over ALL incomplete tasks from any past date to today
 func HandleRolloverAll(w http.ResponseWriter, r *http.Request) {
-	today := time.Now().Format("2006-01-02")
+	today := GetTodayIST()
 
 	count, err := RolloverAllPendingTasks(today)
 	if err != nil {
