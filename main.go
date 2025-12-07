@@ -78,6 +78,14 @@ func main() {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
+	mux.HandleFunc("/api/history-summaries", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			HandleGetHistorySummaries(w, r)
+			return
+		}
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	})
+
 	mux.HandleFunc("/api/rollover", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			HandleRollover(w, r)

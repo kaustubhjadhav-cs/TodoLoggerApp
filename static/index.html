@@ -1486,22 +1486,22 @@
             }
         }
 
-        // Load historical dates
+        // Load historical summaries
         async function loadHistoricalDates() {
             try {
-                const response = await fetch('/api/dates');
-                const dates = await response.json();
-                renderHistory(dates);
+                const response = await fetch('/api/history-summaries');
+                const summaries = await response.json();
+                renderHistory(summaries);
             } catch (error) {
                 console.error('Failed to load history');
             }
         }
 
         // Render history sidebar
-        async function renderHistory(dates) {
+        function renderHistory(summaries) {
             const historyList = document.getElementById('historyList');
             
-            if (!dates || dates.length === 0) {
+            if (!summaries || summaries.length === 0) {
                 historyList.innerHTML = `
                     <div class="empty-state" style="padding: 2rem 1rem;">
                         <p style="font-size: 0.875rem;">No historical data yet</p>
@@ -1510,18 +1510,7 @@
                 return;
             }
 
-            // Get stats for each date
-            const historyItems = await Promise.all(dates.slice(0, 10).map(async date => {
-                try {
-                    const response = await fetch(`/api/daily-log?date=${date}`);
-                    const log = await response.json();
-                    return { date, ...log };
-                } catch {
-                    return { date, completed_count: 0, pending_count: 0 };
-                }
-            }));
-
-            historyList.innerHTML = historyItems.map(item => {
+            historyList.innerHTML = summaries.slice(0, 15).map(item => {
                 const completed = item.completed_count || 0;
                 const pending = item.pending_count || 0;
                 

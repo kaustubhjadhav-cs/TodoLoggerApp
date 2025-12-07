@@ -115,6 +115,21 @@ func HandleGetAllDates(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, dates)
 }
 
+// HandleGetHistorySummaries gets completion stats for all dates
+func HandleGetHistorySummaries(w http.ResponseWriter, r *http.Request) {
+	summaries, err := GetHistorySummaries()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if summaries == nil {
+		summaries = []HistorySummary{}
+	}
+
+	respondJSON(w, http.StatusOK, summaries)
+}
+
 // HandleUpdateTaskCompletion updates the completion status of a task
 func HandleUpdateTaskCompletion(w http.ResponseWriter, r *http.Request) {
 	// Extract ID from URL path: /api/tasks/{id}/complete

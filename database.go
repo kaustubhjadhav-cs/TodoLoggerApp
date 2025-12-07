@@ -185,6 +185,53 @@ func GetAllDates() ([]string, error) {
 	return dates, nil
 }
 
+// HistorySummary represents what was accomplished on a specific date
+type HistorySummary struct {
+	Date           string `json:"date"`
+	CompletedCount int    `json:"completed_count"`
+	PendingCount   int    `json:"pending_count"` // Tasks assigned but not yet completed
+}
+
+// GetHistorySummaries retrieves completion stats for all dates
+func GetHistorySummaries() ([]HistorySummary, error) {
+	// Get all unique dates (both assigned and completed)
+	dates, err := GetAllDates()
+	if err != nil {
+		return nil, err
+	}
+
+	var summaries []HistorySummary
+
+	for _, date := range dates {
+		summary := HistorySummary{Date: date}
+
+		// Count tasks COMPLETED on this date
+		err := db.QueryRow(
+			`SELECT COUNT(*) FROM tasks WHERE completed_date = ? AND is_completed = TRUE`,
+			date,
+		).Scan(&summary.CompletedCount)
+		if err != nil {
+			return nil, err
+		}
+
+		// Count tasks ASSIGNED to this date that are still pending
+		err = db.QueryRow(
+			`SELECT COUNT(*) FROM tasks WHERE assigned_date = ? AND is_completed = FALSE`,
+			date,
+		).Scan(&summary.PendingCount)
+		if err != nil {
+			return nil, err
+		}
+
+		// Only include dates that have some activity
+		if summary.CompletedCount > 0 || summary.PendingCount > 0 {
+			summaries = append(summaries, summary)
+		}
+	}
+
+	return summaries, nil
+}
+
 // UpdateTaskCompletion marks a task as completed or not completed
 func UpdateTaskCompletion(id int64, isCompleted bool) (*Task, error) {
 	var completedDate interface{}
