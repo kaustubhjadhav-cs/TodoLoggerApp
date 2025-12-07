@@ -793,6 +793,106 @@
             transform: translateY(-1px);
         }
 
+        /* Settings Modal */
+        .settings-modal {
+            max-width: 480px;
+        }
+
+        .settings-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 1rem;
+            background: var(--bg-card);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .settings-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .toggle-info {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .toggle-label {
+            display: block;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .toggle-desc {
+            display: block;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .settings-toggle input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 12px;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .settings-toggle input:checked + .toggle-switch {
+            background: var(--accent-green);
+        }
+
+        .settings-toggle input:checked + .toggle-switch::after {
+            transform: translateX(20px);
+        }
+
+        /* Created date tag */
+        .tag-created {
+            background: var(--accent-purple-bg);
+            color: var(--accent-purple);
+        }
+
         /* Toast Notifications */
         .toast-container {
             position: fixed;
@@ -940,6 +1040,9 @@
                 <button class="btn btn-secondary" onclick="rolloverTasks()">
                     🔄 Rollover Pending
                 </button>
+                <button class="btn btn-ghost" onclick="openSettings()" title="Settings">
+                    ⚙️
+                </button>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
                     <span class="icon moon-icon">🌙</span>
                     <span class="icon sun-icon">☀️</span>
@@ -1043,6 +1146,48 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h3>⚙️ Settings</h3>
+                <button class="modal-close" onclick="closeSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4 class="settings-section-title">Display Options</h4>
+                    
+                    <label class="settings-toggle">
+                        <span class="toggle-info">
+                            <span class="toggle-label">Show Creation Date</span>
+                            <span class="toggle-desc">Display when the task was originally created</span>
+                        </span>
+                        <input type="checkbox" id="settingShowCreatedDate" onchange="saveSetting('showCreatedDate', this.checked)">
+                        <span class="toggle-switch"></span>
+                    </label>
+
+                    <label class="settings-toggle">
+                        <span class="toggle-info">
+                            <span class="toggle-label">Show Drag Days</span>
+                            <span class="toggle-desc">Display how many days a task has been pending</span>
+                        </span>
+                        <input type="checkbox" id="settingShowDragDays" onchange="saveSetting('showDragDays', this.checked)">
+                        <span class="toggle-switch"></span>
+                    </label>
+
+                    <label class="settings-toggle">
+                        <span class="toggle-info">
+                            <span class="toggle-label">Show Assigned Date</span>
+                            <span class="toggle-desc">Display the date task is assigned to</span>
+                        </span>
+                        <input type="checkbox" id="settingShowAssignedDate" onchange="saveSetting('showAssignedDate', this.checked)">
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -1081,6 +1226,44 @@
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             setTheme(newTheme);
+        }
+
+        // Settings management
+        const defaultSettings = {
+            showCreatedDate: false,
+            showDragDays: true,
+            showAssignedDate: true
+        };
+
+        function getSettings() {
+            const saved = localStorage.getItem('taskSettings');
+            if (saved) {
+                return { ...defaultSettings, ...JSON.parse(saved) };
+            }
+            return defaultSettings;
+        }
+
+        function saveSetting(key, value) {
+            const settings = getSettings();
+            settings[key] = value;
+            localStorage.setItem('taskSettings', JSON.stringify(settings));
+            renderTasks(); // Re-render tasks with new settings
+        }
+
+        function initSettings() {
+            const settings = getSettings();
+            document.getElementById('settingShowCreatedDate').checked = settings.showCreatedDate;
+            document.getElementById('settingShowDragDays').checked = settings.showDragDays;
+            document.getElementById('settingShowAssignedDate').checked = settings.showAssignedDate;
+        }
+
+        function openSettings() {
+            initSettings();
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
         }
 
         // Initialize app
@@ -1135,6 +1318,7 @@
         function renderTasks() {
             const taskList = document.getElementById('taskList');
             document.getElementById('taskCount').textContent = tasks.length;
+            const settings = getSettings();
 
             if (tasks.length === 0) {
                 taskList.innerHTML = `
@@ -1147,28 +1331,39 @@
                 return;
             }
 
-            taskList.innerHTML = tasks.map(task => `
+            taskList.innerHTML = tasks.map(task => {
+                let metaTags = [];
+
+                if (task.is_completed) {
+                    metaTags.push(`<span class="task-tag tag-completed">✓ Completed</span>`);
+                } else {
+                    if (settings.showAssignedDate) {
+                        metaTags.push(`<span class="task-tag tag-date">📅 ${formatDate(task.assigned_date)}</span>`);
+                    }
+                    if (settings.showDragDays && task.drag_days > 0) {
+                        metaTags.push(`<span class="task-tag tag-drag ${task.drag_days >= 3 ? 'high' : ''}">⏱ Dragged ${task.drag_days} day${task.drag_days > 1 ? 's' : ''}</span>`);
+                    }
+                }
+
+                if (settings.showCreatedDate && task.created_date) {
+                    metaTags.push(`<span class="task-tag tag-created">📝 Created ${formatDate(task.created_date)}</span>`);
+                }
+
+                return `
                 <div class="task-item ${task.is_completed ? 'completed' : ''}" data-id="${task.id}">
                     <div class="task-checkbox ${task.is_completed ? 'checked' : ''}" 
                          onclick="toggleTask(${task.id}, ${!task.is_completed})"></div>
                     <div class="task-content">
                         <div class="task-title">${escapeHtml(task.title)}</div>
                         <div class="task-meta">
-                            ${task.is_completed 
-                                ? `<span class="task-tag tag-completed">✓ Completed</span>`
-                                : `<span class="task-tag tag-date">📅 ${formatDate(task.assigned_date)}</span>`
-                            }
-                            ${!task.is_completed && task.drag_days > 0 
-                                ? `<span class="task-tag tag-drag ${task.drag_days >= 3 ? 'high' : ''}">⏱ Dragged ${task.drag_days} day${task.drag_days > 1 ? 's' : ''}</span>`
-                                : ''
-                            }
+                            ${metaTags.join('')}
                         </div>
                     </div>
                     <div class="task-actions">
                         <button class="task-action-btn delete" onclick="deleteTask(${task.id})" title="Delete">🗑</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         // Update statistics
@@ -1384,6 +1579,10 @@
             if (e.target.id === 'deleteModal') closeDeleteModal();
         });
 
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') closeSettings();
+        });
+
         // Utility functions
         function formatDate(dateStr) {
             const date = new Date(dateStr + 'T00:00:00');
@@ -1438,6 +1637,7 @@
             if (e.key === 'Escape') {
                 closeModal();
                 closeDeleteModal();
+                closeSettings();
             }
 
             // Enter key confirms delete when modal is open
