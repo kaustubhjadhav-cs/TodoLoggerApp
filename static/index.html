@@ -1153,6 +1153,96 @@
             color: var(--accent-blue);
         }
 
+        /* Form elements for modals */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9375rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .color-picker-input {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+
+        .color-picker-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-picker-input::-webkit-color-swatch {
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .color-preset {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-preset:hover {
+            transform: scale(1.1);
+        }
+
+        .color-preset.active {
+            border-color: var(--text-primary);
+        }
+
+        .confirm-modal .modal-body {
+            padding: 0 1.5rem 1rem;
+        }
+
+        .confirm-modal .confirm-modal-actions {
+            padding: 1rem 1.5rem 1.5rem;
+        }
+
         /* Toast Notifications */
         .toast-container {
             position: fixed;
@@ -1328,7 +1418,7 @@
                             <span>Tasks</span>
                             <span class="task-count" id="taskCount">0</span>
                         </h2>
-                        <div class="category-filter">
+                        <div class="category-filter" id="categoryFilterContainer" style="display: none;">
                             <select id="categoryFilter" onchange="filterByCategory(this.value)">
                                 <option value="">All Categories</option>
                             </select>
@@ -1373,7 +1463,7 @@
                     </div>
                 </div>
 
-                <div class="categories-card">
+                <div class="categories-card" id="categoriesSidebarCard" style="display: none;">
                     <div class="categories-header">
                         <h3>🏷️ Categories</h3>
                     </div>
@@ -1420,6 +1510,66 @@
         </div>
     </div>
 
+    <!-- Create Category Modal -->
+    <div class="modal-overlay" id="createCategoryModal" style="z-index: 1100;">
+        <div class="modal confirm-modal">
+            <div class="modal-header">
+                <h3>Create Category</h3>
+                <button class="modal-close" onclick="closeCreateCategoryModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Category Name</label>
+                    <input type="text" id="newCategoryName" class="form-input" placeholder="e.g., Work, Personal" autocomplete="off" onkeydown="if(event.key === 'Enter') submitNewCategory()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Color</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="newCategoryColor" class="color-picker-input" value="#58a6ff">
+                        <div class="color-presets">
+                            <button type="button" class="color-preset" style="background: #58a6ff" onclick="setNewCategoryColor('#58a6ff')"></button>
+                            <button type="button" class="color-preset" style="background: #3fb950" onclick="setNewCategoryColor('#3fb950')"></button>
+                            <button type="button" class="color-preset" style="background: #f0883e" onclick="setNewCategoryColor('#f0883e')"></button>
+                            <button type="button" class="color-preset" style="background: #bc8cff" onclick="setNewCategoryColor('#bc8cff')"></button>
+                            <button type="button" class="color-preset" style="background: #f85149" onclick="setNewCategoryColor('#f85149')"></button>
+                            <button type="button" class="color-preset" style="background: #8b949e" onclick="setNewCategoryColor('#8b949e')"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="confirm-modal-actions">
+                <button class="btn btn-secondary" onclick="closeCreateCategoryModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitNewCategory()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Category Confirmation Modal -->
+    <div class="modal-overlay" id="renameCategoryModal" style="z-index: 1100;">
+        <div class="modal confirm-modal">
+            <div class="confirm-modal-icon">🏷️</div>
+            <h3 class="confirm-modal-title">Rename Category?</h3>
+            <p class="confirm-modal-text" id="renameConfirmText">This will affect tasks.</p>
+            <div class="confirm-modal-actions">
+                <button class="btn btn-secondary" onclick="cancelCategoryRename()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmCategoryRenameAction()">Rename</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Category Confirmation Modal -->
+    <div class="modal-overlay" id="deleteCategoryModal" style="z-index: 1100;">
+        <div class="modal confirm-modal">
+            <div class="confirm-modal-icon">🗑️</div>
+            <h3 class="confirm-modal-title">Delete Category?</h3>
+            <p class="confirm-modal-text" id="deleteCategoryText">Tasks assigned to this category will become uncategorized.</p>
+            <div class="confirm-modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteCategoryModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteCategory()">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal settings-modal">
@@ -1457,9 +1607,18 @@
                         <input type="checkbox" id="settingShowAssignedDate" onchange="saveSetting('showAssignedDate', this.checked)">
                         <span class="toggle-switch"></span>
                     </label>
+
+                    <label class="settings-toggle">
+                        <span class="toggle-info">
+                            <span class="toggle-label">Enable Categories</span>
+                            <span class="toggle-desc">Organize tasks with categories</span>
+                        </span>
+                        <input type="checkbox" id="settingShowCategories" onchange="toggleCategoriesFeature(this.checked)">
+                        <span class="toggle-switch"></span>
+                    </label>
                 </div>
 
-                <div class="settings-section">
+                <div class="settings-section" id="manageCategoriesSection" style="display: none;">
                     <h4 class="settings-section-title">Manage Categories</h4>
                     <div id="categoryManageList">
                         <!-- Categories will be populated here -->
@@ -1516,7 +1675,8 @@
         const defaultSettings = {
             showCreatedDate: false,
             showDragDays: true,
-            showAssignedDate: true
+            showAssignedDate: true,
+            showCategories: false
         };
 
         function getSettings() {
@@ -1539,6 +1699,34 @@
             document.getElementById('settingShowCreatedDate').checked = settings.showCreatedDate;
             document.getElementById('settingShowDragDays').checked = settings.showDragDays;
             document.getElementById('settingShowAssignedDate').checked = settings.showAssignedDate;
+            document.getElementById('settingShowCategories').checked = settings.showCategories;
+            
+            // Show/hide manage categories section based on setting
+            document.getElementById('manageCategoriesSection').style.display = settings.showCategories ? 'block' : 'none';
+        }
+
+        function toggleCategoriesFeature(enabled) {
+            saveSetting('showCategories', enabled);
+            
+            // Toggle UI elements
+            document.getElementById('categoriesSidebarCard').style.display = enabled ? 'block' : 'none';
+            document.getElementById('categoryFilterContainer').style.display = enabled ? 'flex' : 'none';
+            document.getElementById('manageCategoriesSection').style.display = enabled ? 'block' : 'none';
+            
+            // Clear category filter if disabled
+            if (!enabled) {
+                selectedCategoryFilter = '';
+                document.getElementById('categoryFilter').value = '';
+            }
+            
+            // Re-render tasks to show/hide category buttons and tags
+            renderTasks();
+        }
+
+        function applyCategoriesVisibility() {
+            const settings = getSettings();
+            document.getElementById('categoriesSidebarCard').style.display = settings.showCategories ? 'block' : 'none';
+            document.getElementById('categoryFilterContainer').style.display = settings.showCategories ? 'flex' : 'none';
         }
 
         function openSettings() {
@@ -1619,32 +1807,53 @@
             }
 
             list.innerHTML = categories.map(cat => `
-                <div class="category-manage-item" data-id="${cat.id}">
+                <div class="category-manage-item" data-id="${cat.id}" data-original-name="${escapeHtml(cat.name)}">
                     <input type="color" class="category-manage-color" value="${cat.color}" 
                            onchange="updateCategoryColor(${cat.id}, this.value)">
                     <input type="text" class="category-manage-name" value="${escapeHtml(cat.name)}" 
-                           onblur="updateCategoryName(${cat.id}, this.value)">
+                           onkeydown="handleCategoryNameKeydown(event, ${cat.id})"
+                           onblur="handleCategoryNameBlur(event, ${cat.id})">
                     <button class="category-manage-delete" onclick="deleteCategory(${cat.id})" title="Delete">🗑</button>
                 </div>
             `).join('');
         }
 
-        async function addNewCategory() {
-            const name = prompt('Enter category name:');
-            if (!name || !name.trim()) return;
+        // Create category modal functions
+        function addNewCategory() {
+            document.getElementById('newCategoryName').value = '';
+            document.getElementById('newCategoryColor').value = '#58a6ff';
+            document.getElementById('createCategoryModal').classList.add('active');
+            setTimeout(() => document.getElementById('newCategoryName').focus(), 100);
+        }
 
-            const colors = ['#58a6ff', '#3fb950', '#f0883e', '#bc8cff', '#f85149', '#8b949e'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        function closeCreateCategoryModal() {
+            document.getElementById('createCategoryModal').classList.remove('active');
+        }
+
+        function setNewCategoryColor(color) {
+            document.getElementById('newCategoryColor').value = color;
+        }
+
+        async function submitNewCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const color = document.getElementById('newCategoryColor').value;
+
+            if (!name) {
+                showToast('Please enter a category name', 'error');
+                return;
+            }
 
             try {
                 const response = await fetch('/api/categories', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name.trim(), color: randomColor })
+                    body: JSON.stringify({ name, color })
                 });
 
                 if (response.ok) {
+                    closeCreateCategoryModal();
                     await loadCategories();
+                    renderCategoryManageList();
                     showToast('Category created', 'success');
                 } else {
                     const error = await response.json();
@@ -1655,20 +1864,128 @@
             }
         }
 
-        async function updateCategoryName(id, name) {
-            if (!name || !name.trim()) return;
-            const cat = categories.find(c => c.id === id);
-            if (!cat || cat.name === name.trim()) return;
+        let categoryRenameInProgress = {};
 
+        function handleCategoryNameKeydown(event, id) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                event.stopPropagation(); // Prevent the global Enter handler from firing
+                categoryRenameInProgress[id] = true;
+                const newName = event.target.value;
+                event.target.blur();
+                // Use setTimeout to ensure blur completes before opening modal
+                setTimeout(() => confirmCategoryRename(id, newName), 10);
+            } else if (event.key === 'Escape') {
+                // Reset to original name
+                const item = document.querySelector(`.category-manage-item[data-id="${id}"]`);
+                if (item) {
+                    event.target.value = item.dataset.originalName;
+                    event.target.blur();
+                }
+            }
+        }
+
+        function handleCategoryNameBlur(event, id) {
+            // Skip if already triggered by Enter key
+            if (categoryRenameInProgress[id]) {
+                delete categoryRenameInProgress[id];
+                return;
+            }
+
+            const item = document.querySelector(`.category-manage-item[data-id="${id}"]`);
+            const originalName = item ? item.dataset.originalName : '';
+            const newName = event.target.value.trim();
+            
+            // If name changed, trigger rename
+            if (newName && newName !== originalName) {
+                confirmCategoryRename(id, newName);
+            }
+        }
+
+        let confirmingRename = {};
+        let pendingRenameData = null;
+
+        async function confirmCategoryRename(id, newName) {
+            if (!newName || !newName.trim()) return;
+            
+            // Prevent double execution
+            if (confirmingRename[id]) return;
+            confirmingRename[id] = true;
+            
+            const cat = categories.find(c => c.id === id);
+            if (!cat || cat.name === newName.trim()) {
+                delete confirmingRename[id];
+                return;
+            }
+
+            const taskCount = cat.task_count || 0;
+            const originalName = cat.name;
+            const color = cat.color;
+            
+            // Always show confirmation modal
+            pendingRenameData = { id, newName, color, taskCount, originalName };
+            
+            if (taskCount > 0) {
+                document.getElementById('renameConfirmText').innerHTML = 
+                    `Renaming "<strong>${escapeHtml(originalName)}</strong>" to "<strong>${escapeHtml(newName.trim())}</strong>" will affect <strong>${taskCount} task${taskCount > 1 ? 's' : ''}</strong>.`;
+            } else {
+                document.getElementById('renameConfirmText').innerHTML = 
+                    `Rename "<strong>${escapeHtml(originalName)}</strong>" to "<strong>${escapeHtml(newName.trim())}</strong>"?`;
+            }
+            document.getElementById('renameCategoryModal').classList.add('active');
+        }
+
+        function cancelCategoryRename() {
+            document.getElementById('renameCategoryModal').classList.remove('active');
+            if (pendingRenameData) {
+                // Reset the input to original name
+                const input = document.querySelector(`.category-manage-item[data-id="${pendingRenameData.id}"] .category-manage-name`);
+                if (input) input.value = pendingRenameData.originalName;
+                delete confirmingRename[pendingRenameData.id];
+                pendingRenameData = null;
+            }
+        }
+
+        async function confirmCategoryRenameAction() {
+            document.getElementById('renameCategoryModal').classList.remove('active');
+            if (pendingRenameData) {
+                const { id, newName, color, taskCount } = pendingRenameData;
+                pendingRenameData = null;
+                await performCategoryRename(id, newName, color, taskCount);
+            }
+        }
+
+        async function performCategoryRename(id, name, color, taskCount) {
             try {
-                await fetch(`/api/categories/${id}`, {
+                const response = await fetch(`/api/categories/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name.trim(), color: cat.color })
+                    body: JSON.stringify({ name: name.trim(), color: color })
                 });
-                await loadCategories();
+                
+                if (response.ok) {
+                    // Reload categories and update all UI
+                    const catResponse = await fetch('/api/categories');
+                    categories = await catResponse.json();
+                    
+                    renderCategoriesSidebar();
+                    updateCategoryFilter();
+                    renderCategoryManageList();
+                    
+                    // Reload tasks to get updated category names
+                    await loadTasksForDate(currentDate);
+                    
+                    showToast(`Category renamed${taskCount > 0 ? ` (${taskCount} task${taskCount > 1 ? 's' : ''} updated)` : ''}`, 'success');
+                } else {
+                    throw new Error('Failed to update');
+                }
             } catch (error) {
                 showToast('Failed to update category', 'error');
+                // Reset to original on error
+                renderCategoryManageList();
+            } finally {
+                // Clear the confirming flag
+                delete confirmingRename[id];
             }
         }
 
@@ -1683,18 +2000,45 @@
                     body: JSON.stringify({ name: cat.name, color: color })
                 });
                 await loadCategories();
+                renderCategoryManageList();
                 renderTasks();
+                showToast('Category color updated', 'success');
             } catch (error) {
                 showToast('Failed to update category', 'error');
             }
         }
 
-        async function deleteCategory(id) {
-            if (!confirm('Delete this category? Tasks will keep their assignments.')) return;
+        let pendingDeleteCategoryId = null;
+
+        function deleteCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+
+            pendingDeleteCategoryId = id;
+            const taskCount = cat.task_count || 0;
+            
+            document.getElementById('deleteCategoryText').innerHTML = taskCount > 0
+                ? `"<strong>${escapeHtml(cat.name)}</strong>" has <strong>${taskCount} task${taskCount > 1 ? 's' : ''}</strong> assigned. Tasks will become uncategorized.`
+                : `Are you sure you want to delete "<strong>${escapeHtml(cat.name)}</strong>"?`;
+            
+            document.getElementById('deleteCategoryModal').classList.add('active');
+        }
+
+        function closeDeleteCategoryModal() {
+            document.getElementById('deleteCategoryModal').classList.remove('active');
+            pendingDeleteCategoryId = null;
+        }
+
+        async function confirmDeleteCategory() {
+            if (!pendingDeleteCategoryId) return;
+            
+            const id = pendingDeleteCategoryId;
+            closeDeleteCategoryModal();
 
             try {
                 await fetch(`/api/categories/${id}`, { method: 'DELETE' });
                 await loadCategories();
+                renderCategoryManageList();
                 renderTasks();
                 showToast('Category deleted', 'info');
             } catch (error) {
@@ -1776,6 +2120,7 @@
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
+            applyCategoriesVisibility();
             document.getElementById('currentDate').value = currentDate;
             updateTodayBadge();
             loadCategories();
@@ -1812,15 +2157,12 @@
             updateTodayBadge();
             
             try {
-                console.log('Loading tasks for date:', date);
                 const response = await fetch(`/api/daily-log?date=${date}`);
                 const log = await response.json();
-                console.log('API response:', log);
                 tasks = log.tasks || [];
                 renderTasks();
                 updateStats(log);
             } catch (error) {
-                console.error('Error loading tasks:', error);
                 showToast('Failed to load tasks', 'error');
             }
         }
@@ -1830,16 +2172,11 @@
             const taskList = document.getElementById('taskList');
             const settings = getSettings();
 
-            console.log('renderTasks called, tasks:', tasks);
-            console.log('selectedCategoryFilter:', selectedCategoryFilter);
-
-            // Filter by category if selected
+            // Filter by category if selected (only if categories feature is enabled)
             let filteredTasks = tasks;
-            if (selectedCategoryFilter) {
+            if (settings.showCategories && selectedCategoryFilter) {
                 filteredTasks = tasks.filter(t => t.category_id == selectedCategoryFilter);
             }
-
-            console.log('filteredTasks:', filteredTasks);
 
             document.getElementById('taskCount').textContent = filteredTasks.length;
 
@@ -1857,8 +2194,8 @@
             taskList.innerHTML = filteredTasks.map(task => {
                 let metaTags = [];
 
-                // Category tag first
-                if (task.category) {
+                // Category tag first (only if categories enabled)
+                if (settings.showCategories && task.category) {
                     metaTags.push(`<span class="task-tag tag-category"><span class="category-dot" style="background: ${task.category.color}"></span>${escapeHtml(task.category.name)}</span>`);
                 }
 
@@ -1877,6 +2214,10 @@
                     metaTags.push(`<span class="task-tag tag-created">📝 Created ${formatDate(task.created_date)}</span>`);
                 }
 
+                const categoryButton = settings.showCategories 
+                    ? `<button class="task-action-btn category" onclick="toggleCategoryDropdown(${task.id}, event)" title="Assign Category">🏷️</button>`
+                    : '';
+
                 return `
                 <div class="task-item ${task.is_completed ? 'completed' : ''}" data-id="${task.id}">
                     <div class="task-checkbox ${task.is_completed ? 'checked' : ''}" 
@@ -1888,7 +2229,7 @@
                         </div>
                     </div>
                     <div class="task-actions">
-                        <button class="task-action-btn category" onclick="toggleCategoryDropdown(${task.id}, event)" title="Assign Category">🏷️</button>
+                        ${categoryButton}
                         <button class="task-action-btn delete" onclick="deleteTask(${task.id})" title="Delete">🗑</button>
                     </div>
                 </div>
@@ -1946,6 +2287,7 @@
                 if (response.ok) {
                     loadTasksForDate(currentDate);
                     loadHistoricalDates();
+                    loadCategories(); // Update category task counts
                     showToast(completed ? 'Task completed!' : 'Task reopened', 'success');
                 }
             } catch (error) {
@@ -1985,6 +2327,7 @@
                     closeDeleteModal();
                     loadTasksForDate(currentDate);
                     loadHistoricalDates();
+                    loadCategories(); // Update category task counts
                     showToast('Task deleted', 'info');
                 }
             } catch (error) {
@@ -2113,6 +2456,18 @@
             if (e.target.id === 'settingsModal') closeSettings();
         });
 
+        document.getElementById('createCategoryModal').addEventListener('click', (e) => {
+            if (e.target.id === 'createCategoryModal') closeCreateCategoryModal();
+        });
+
+        document.getElementById('renameCategoryModal').addEventListener('click', (e) => {
+            if (e.target.id === 'renameCategoryModal') cancelCategoryRename();
+        });
+
+        document.getElementById('deleteCategoryModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteCategoryModal') closeDeleteCategoryModal();
+        });
+
         // Utility functions
         function formatDate(dateStr) {
             const date = new Date(dateStr + 'T00:00:00');
@@ -2168,12 +2523,33 @@
                 closeModal();
                 closeDeleteModal();
                 closeSettings();
+                closeCreateCategoryModal();
+                cancelCategoryRename();
+                closeDeleteCategoryModal();
             }
 
             // Enter key confirms delete when modal is open
             if (e.key === 'Enter' && document.getElementById('deleteModal').classList.contains('active')) {
                 e.preventDefault();
                 confirmDelete();
+            }
+
+            // Enter key confirms category rename when modal is open
+            if (e.key === 'Enter' && document.getElementById('renameCategoryModal').classList.contains('active')) {
+                e.preventDefault();
+                confirmCategoryRenameAction();
+            }
+
+            // Enter key confirms category delete when modal is open
+            if (e.key === 'Enter' && document.getElementById('deleteCategoryModal').classList.contains('active')) {
+                e.preventDefault();
+                confirmDeleteCategory();
+            }
+
+            // Enter key in create category modal (already handled by input onkeydown, but this is a fallback)
+            if (e.key === 'Enter' && document.getElementById('createCategoryModal').classList.contains('active') && document.activeElement.id !== 'newCategoryName') {
+                e.preventDefault();
+                submitNewCategory();
             }
             
             // Focus input with '/' key
