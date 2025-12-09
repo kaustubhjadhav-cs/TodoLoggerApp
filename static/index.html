@@ -893,6 +893,266 @@
             color: var(--accent-purple);
         }
 
+        /* Category tag */
+        .tag-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .category-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Category dropdown */
+        .category-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            min-width: 180px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            overflow: hidden;
+            animation: dropdownIn 0.15s ease;
+        }
+
+        @keyframes dropdownIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .category-dropdown-header {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .category-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.625rem 0.875rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.875rem;
+        }
+
+        .category-dropdown-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .category-dropdown-item.active {
+            background: var(--accent-blue-bg);
+        }
+
+        .category-dropdown-item .category-dot {
+            width: 10px;
+            height: 10px;
+        }
+
+        .category-dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.25rem 0;
+        }
+
+        .category-dropdown-item.create-new {
+            color: var(--accent-blue);
+        }
+
+        .category-dropdown-item.remove {
+            color: var(--text-muted);
+        }
+
+        /* Task action button for category */
+        .task-action-btn.category {
+            position: relative;
+        }
+
+        /* Category filter */
+        .category-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .category-filter select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+        .category-filter select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Categories sidebar section */
+        .categories-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .categories-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .categories-header h3 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .categories-list {
+            padding: 0.5rem;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .category-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .category-item.active {
+            background: var(--accent-blue-bg);
+        }
+
+        .category-item .category-dot {
+            width: 12px;
+            height: 12px;
+        }
+
+        .category-item-name {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .category-item-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+        }
+
+        /* Manage categories in settings */
+        .category-manage-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-manage-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .category-manage-color:hover {
+            border-color: var(--text-muted);
+        }
+
+        .category-manage-name {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9375rem;
+        }
+
+        .category-manage-name:focus {
+            outline: none;
+        }
+
+        .category-manage-delete {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .category-manage-delete:hover {
+            background: var(--accent-red-bg);
+            color: var(--accent-red);
+        }
+
+        .add-category-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .add-category-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
         /* Toast Notifications */
         .toast-container {
             position: fixed;
@@ -1068,6 +1328,11 @@
                             <span>Tasks</span>
                             <span class="task-count" id="taskCount">0</span>
                         </h2>
+                        <div class="category-filter">
+                            <select id="categoryFilter" onchange="filterByCategory(this.value)">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
                     </div>
 
                     <form class="add-task-form" onsubmit="addTask(event)">
@@ -1105,6 +1370,15 @@
                             <div class="stat-value purple" id="draggedCount">0</div>
                             <div class="stat-label">Dragged</div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="categories-card">
+                    <div class="categories-header">
+                        <h3>🏷️ Categories</h3>
+                    </div>
+                    <div class="categories-list" id="categoriesList">
+                        <!-- Categories will be populated here -->
                     </div>
                 </div>
 
@@ -1184,6 +1458,14 @@
                         <span class="toggle-switch"></span>
                     </label>
                 </div>
+
+                <div class="settings-section">
+                    <h4 class="settings-section-title">Manage Categories</h4>
+                    <div id="categoryManageList">
+                        <!-- Categories will be populated here -->
+                    </div>
+                    <button class="add-category-btn" onclick="addNewCategory()">+ Add Category</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1195,6 +1477,8 @@
         // Global state
         let currentDate = getTodayIST();
         let tasks = [];
+        let categories = [];
+        let selectedCategoryFilter = '';
 
         // Get today's date in IST (Asia/Kolkata timezone)
         function getTodayIST() {
@@ -1259,6 +1543,7 @@
 
         function openSettings() {
             initSettings();
+            renderCategoryManageList();
             document.getElementById('settingsModal').classList.add('active');
         }
 
@@ -1266,11 +1551,234 @@
             document.getElementById('settingsModal').classList.remove('active');
         }
 
+        // Category management
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                categories = await response.json();
+                renderCategoriesSidebar();
+                updateCategoryFilter();
+                renderCategoryManageList();
+            } catch (error) {
+                console.error('Failed to load categories');
+            }
+        }
+
+        function renderCategoriesSidebar() {
+            const list = document.getElementById('categoriesList');
+            
+            if (!categories || categories.length === 0) {
+                list.innerHTML = `
+                    <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
+                        No categories yet
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = `
+                <div class="category-item ${selectedCategoryFilter === '' ? 'active' : ''}" onclick="filterByCategory('')">
+                    <span class="category-dot" style="background: var(--text-muted)"></span>
+                    <span class="category-item-name">All Tasks</span>
+                </div>
+            ` + categories.map(cat => `
+                <div class="category-item ${selectedCategoryFilter == cat.id ? 'active' : ''}" onclick="filterByCategory('${cat.id}')">
+                    <span class="category-dot" style="background: ${cat.color}"></span>
+                    <span class="category-item-name">${escapeHtml(cat.name)}</span>
+                    <span class="category-item-count">${cat.task_count || 0}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateCategoryFilter() {
+            const select = document.getElementById('categoryFilter');
+            select.innerHTML = `<option value="">All Categories</option>` +
+                categories.map(cat => `
+                    <option value="${cat.id}" ${selectedCategoryFilter == cat.id ? 'selected' : ''}>${cat.name}</option>
+                `).join('');
+        }
+
+        function filterByCategory(categoryId) {
+            selectedCategoryFilter = categoryId;
+            document.getElementById('categoryFilter').value = categoryId;
+            renderCategoriesSidebar();
+            renderTasks();
+        }
+
+        function renderCategoryManageList() {
+            const list = document.getElementById('categoryManageList');
+            if (!list) return;
+
+            if (!categories || categories.length === 0) {
+                list.innerHTML = `
+                    <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
+                        No categories yet. Add one below!
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = categories.map(cat => `
+                <div class="category-manage-item" data-id="${cat.id}">
+                    <input type="color" class="category-manage-color" value="${cat.color}" 
+                           onchange="updateCategoryColor(${cat.id}, this.value)">
+                    <input type="text" class="category-manage-name" value="${escapeHtml(cat.name)}" 
+                           onblur="updateCategoryName(${cat.id}, this.value)">
+                    <button class="category-manage-delete" onclick="deleteCategory(${cat.id})" title="Delete">🗑</button>
+                </div>
+            `).join('');
+        }
+
+        async function addNewCategory() {
+            const name = prompt('Enter category name:');
+            if (!name || !name.trim()) return;
+
+            const colors = ['#58a6ff', '#3fb950', '#f0883e', '#bc8cff', '#f85149', '#8b949e'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+            try {
+                const response = await fetch('/api/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name.trim(), color: randomColor })
+                });
+
+                if (response.ok) {
+                    await loadCategories();
+                    showToast('Category created', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to create category', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to create category', 'error');
+            }
+        }
+
+        async function updateCategoryName(id, name) {
+            if (!name || !name.trim()) return;
+            const cat = categories.find(c => c.id === id);
+            if (!cat || cat.name === name.trim()) return;
+
+            try {
+                await fetch(`/api/categories/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name.trim(), color: cat.color })
+                });
+                await loadCategories();
+            } catch (error) {
+                showToast('Failed to update category', 'error');
+            }
+        }
+
+        async function updateCategoryColor(id, color) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+
+            try {
+                await fetch(`/api/categories/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: cat.name, color: color })
+                });
+                await loadCategories();
+                renderTasks();
+            } catch (error) {
+                showToast('Failed to update category', 'error');
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Delete this category? Tasks will keep their assignments.')) return;
+
+            try {
+                await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+                await loadCategories();
+                renderTasks();
+                showToast('Category deleted', 'info');
+            } catch (error) {
+                showToast('Failed to delete category', 'error');
+            }
+        }
+
+        // Category assignment dropdown
+        let activeCategoryDropdown = null;
+
+        function toggleCategoryDropdown(taskId, event) {
+            event.stopPropagation();
+            closeCategoryDropdown();
+
+            const task = tasks.find(t => t.id === taskId);
+            const button = event.currentTarget;
+            const rect = button.getBoundingClientRect();
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'category-dropdown';
+            dropdown.id = 'categoryDropdown';
+            dropdown.innerHTML = `
+                <div class="category-dropdown-header">Assign Category</div>
+                ${categories.map(cat => `
+                    <div class="category-dropdown-item ${task.category_id == cat.id ? 'active' : ''}" 
+                         onclick="assignCategory(${taskId}, ${cat.id})">
+                        <span class="category-dot" style="background: ${cat.color}"></span>
+                        <span>${escapeHtml(cat.name)}</span>
+                    </div>
+                `).join('')}
+                ${task.category_id ? `
+                    <div class="category-dropdown-divider"></div>
+                    <div class="category-dropdown-item remove" onclick="assignCategory(${taskId}, null)">
+                        <span>✕</span>
+                        <span>Remove Category</span>
+                    </div>
+                ` : ''}
+            `;
+
+            button.style.position = 'relative';
+            button.appendChild(dropdown);
+            activeCategoryDropdown = dropdown;
+        }
+
+        function closeCategoryDropdown() {
+            if (activeCategoryDropdown) {
+                activeCategoryDropdown.remove();
+                activeCategoryDropdown = null;
+            }
+        }
+
+        async function assignCategory(taskId, categoryId) {
+            closeCategoryDropdown();
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/category`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category_id: categoryId })
+                });
+
+                if (response.ok) {
+                    await loadTasksForDate(currentDate);
+                    await loadCategories();
+                    showToast('Category updated', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to update category', 'error');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.category-dropdown') && !e.target.closest('.task-action-btn.category')) {
+                closeCategoryDropdown();
+            }
+        });
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
             document.getElementById('currentDate').value = currentDate;
             updateTodayBadge();
+            loadCategories();
             loadTasksForDate(currentDate);
             loadHistoricalDates();
         });
@@ -1304,12 +1812,15 @@
             updateTodayBadge();
             
             try {
+                console.log('Loading tasks for date:', date);
                 const response = await fetch(`/api/daily-log?date=${date}`);
                 const log = await response.json();
+                console.log('API response:', log);
                 tasks = log.tasks || [];
                 renderTasks();
                 updateStats(log);
             } catch (error) {
+                console.error('Error loading tasks:', error);
                 showToast('Failed to load tasks', 'error');
             }
         }
@@ -1317,22 +1828,39 @@
         // Render tasks
         function renderTasks() {
             const taskList = document.getElementById('taskList');
-            document.getElementById('taskCount').textContent = tasks.length;
             const settings = getSettings();
 
-            if (tasks.length === 0) {
+            console.log('renderTasks called, tasks:', tasks);
+            console.log('selectedCategoryFilter:', selectedCategoryFilter);
+
+            // Filter by category if selected
+            let filteredTasks = tasks;
+            if (selectedCategoryFilter) {
+                filteredTasks = tasks.filter(t => t.category_id == selectedCategoryFilter);
+            }
+
+            console.log('filteredTasks:', filteredTasks);
+
+            document.getElementById('taskCount').textContent = filteredTasks.length;
+
+            if (filteredTasks.length === 0) {
                 taskList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">✨</div>
-                        <h3>No tasks for this day</h3>
-                        <p>Add a task above to get started</p>
+                        <h3>${selectedCategoryFilter ? 'No tasks in this category' : 'No tasks for this day'}</h3>
+                        <p>${selectedCategoryFilter ? 'Try selecting a different category' : 'Add a task above to get started'}</p>
                     </div>
                 `;
                 return;
             }
 
-            taskList.innerHTML = tasks.map(task => {
+            taskList.innerHTML = filteredTasks.map(task => {
                 let metaTags = [];
+
+                // Category tag first
+                if (task.category) {
+                    metaTags.push(`<span class="task-tag tag-category"><span class="category-dot" style="background: ${task.category.color}"></span>${escapeHtml(task.category.name)}</span>`);
+                }
 
                 if (task.is_completed) {
                     metaTags.push(`<span class="task-tag tag-completed">✓ Completed</span>`);
@@ -1360,6 +1888,7 @@
                         </div>
                     </div>
                     <div class="task-actions">
+                        <button class="task-action-btn category" onclick="toggleCategoryDropdown(${task.id}, event)" title="Assign Category">🏷️</button>
                         <button class="task-action-btn delete" onclick="deleteTask(${task.id})" title="Delete">🗑</button>
                     </div>
                 </div>

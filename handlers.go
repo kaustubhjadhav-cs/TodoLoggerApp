@@ -130,6 +130,147 @@ func HandleGetHistorySummaries(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, summaries)
 }
 
+// Category handlers
+
+// HandleGetCategories gets all categories
+func HandleGetCategories(w http.ResponseWriter, r *http.Request) {
+	categories, err := GetAllCategories()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if categories == nil {
+		categories = []Category{}
+	}
+
+	respondJSON(w, http.StatusOK, categories)
+}
+
+// HandleCreateCategory creates a new category
+func HandleCreateCategory(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Name  string `json:"name"`
+		Color string `json:"color"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Name == "" {
+		respondError(w, http.StatusBadRequest, "Name is required")
+		return
+	}
+
+	if req.Color == "" {
+		req.Color = "#58a6ff" // default blue
+	}
+
+	category, err := CreateCategory(req.Name, req.Color)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusCreated, category)
+}
+
+// HandleUpdateCategory updates a category
+func HandleUpdateCategory(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/api/categories/")
+	id, err := strconv.ParseInt(path, 10, 64)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
+
+	var req struct {
+		Name  string `json:"name"`
+		Color string `json:"color"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	category, err := UpdateCategory(id, req.Name, req.Color)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusOK, category)
+}
+
+// HandleDeleteCategory deletes a category
+func HandleDeleteCategory(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/api/categories/")
+	id, err := strconv.ParseInt(path, 10, 64)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
+
+	if err := DeleteCategory(id); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Category deleted successfully"})
+}
+
+// HandleUpdateTaskCategory updates a task's category
+func HandleUpdateTaskCategory(w http.ResponseWriter, r *http.Request) {
+	// Extract ID from URL path: /api/tasks/{id}/category
+	path := strings.TrimPrefix(r.URL.Path, "/api/tasks/")
+	path = strings.TrimSuffix(path, "/category")
+	id, err := strconv.ParseInt(path, 10, 64)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid task ID")
+		return
+	}
+
+	var req struct {
+		CategoryID *int64 `json:"category_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	task, err := UpdateTaskCategory(id, req.CategoryID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusOK, task)
+}
+
+// HandleGetTasksByCategory gets all tasks for a category
+func HandleGetTasksByCategory(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/api/categories/")
+	path = strings.TrimSuffix(path, "/tasks")
+	id, err := strconv.ParseInt(path, 10, 64)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
+
+	tasks, err := GetTasksByCategory(id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if tasks == nil {
+		tasks = []Task{}
+	}
+
+	respondJSON(w, http.StatusOK, tasks)
+}
+
 // HandleUpdateTaskCompletion updates the completion status of a task
 func HandleUpdateTaskCompletion(w http.ResponseWriter, r *http.Request) {
 	// Extract ID from URL path: /api/tasks/{id}/complete

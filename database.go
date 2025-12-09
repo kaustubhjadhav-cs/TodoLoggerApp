@@ -30,8 +30,15 @@ func initDB() error {
 		return err
 	}
 
-	// Create tasks table
+	// Create tables
 	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS categories (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL UNIQUE,
+		color TEXT NOT NULL DEFAULT '#58a6ff',
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);
+
 	CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
@@ -40,15 +47,116 @@ func initDB() error {
 		assigned_date TEXT NOT NULL,
 		completed_date TEXT,
 		is_completed BOOLEAN DEFAULT FALSE,
+		category_id INTEGER,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_assigned_date ON tasks(assigned_date);
 	CREATE INDEX IF NOT EXISTS idx_completed_date ON tasks(completed_date);
+	CREATE INDEX IF NOT EXISTS idx_category_id ON tasks(category_id);
 	`
 
 	_, err = db.Exec(createTableSQL)
+	if err != nil {
+		return err
+	}
+
+	// Add category_id column if it doesn't exist (for existing databases)
+	db.Exec(`ALTER TABLE tasks ADD COLUMN category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL`)
+
+	// Insert default categories if none exist
+	var count int
+	err = db.QueryRow(`SELECT COUNT(*) FROM categories`).Scan(&count)
+	if err != nil || count == 0 {
+		db.Exec(`INSERT OR IGNORE INTO categories (name, color) VALUES ('Work', '#58a6ff')`)
+		db.Exec(`INSERT OR IGNORE INTO categories (name, color) VALUES ('Personal', '#3fb950')`)
+		db.Exec(`INSERT OR IGNORE INTO categories (name, color) VALUES ('Misc', '#f0883e')`)
+	}
+
+	return nil
+}
+
+// Category CRUD operations
+
+// CreateCategory creates a new category
+func CreateCategory(name, color string) (*Category, error) {
+	result, err := db.Exec(
+		`INSERT INTO categories (name, color) VALUES (?, ?)`,
+		name, color,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	id, _ := result.LastInsertId()
+	return GetCategoryByID(id)
+}
+
+// GetCategoryByID retrieves a category by ID
+func GetCategoryByID(id int64) (*Category, error) {
+	cat := &Category{}
+	var createdAt string
+
+	err := db.QueryRow(
+		`SELECT id, name, color, created_at FROM categories WHERE id = ?`,
+		id,
+	).Scan(&cat.ID, &cat.Name, &cat.Color, &createdAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cat.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
+	return cat, nil
+}
+
+// GetAllCategories retrieves all categories with task counts
+func GetAllCategories() ([]Category, error) {
+	rows, err := db.Query(
+		`SELECT c.id, c.name, c.color, c.created_at, 
+		 (SELECT COUNT(*) FROM tasks WHERE category_id = c.id AND is_completed = FALSE) as task_count
+		 FROM categories c ORDER BY c.name ASC`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var categories []Category
+	for rows.Next() {
+		var cat Category
+		var createdAt string
+
+		err := rows.Scan(&cat.ID, &cat.Name, &cat.Color, &createdAt, &cat.TaskCount)
+		if err != nil {
+			return nil, err
+		}
+
+		cat.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
+		categories = append(categories, cat)
+	}
+
+	return categories, nil
+}
+
+// UpdateCategory updates a category
+func UpdateCategory(id int64, name, color string) (*Category, error) {
+	_, err := db.Exec(
+		`UPDATE categories SET name = ?, color = ? WHERE id = ?`,
+		name, color, id,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetCategoryByID(id)
+}
+
+// DeleteCategory deletes a category
+func DeleteCategory(id int64) error {
+	_, err := db.Exec(`DELETE FROM categories WHERE id = ?`, id)
 	return err
 }
 
@@ -74,12 +182,13 @@ func CreateTask(title, description, date string) (*Task, error) {
 func GetTaskByID(id int64) (*Task, error) {
 	task := &Task{}
 	var completedDate sql.NullString
+	var categoryID sql.NullInt64
 	var createdAt, updatedAt string
 
 	err := db.QueryRow(
-		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, created_at, updated_at FROM tasks WHERE id = ?`,
+		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, category_id, created_at, updated_at FROM tasks WHERE id = ?`,
 		id,
-	).Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &createdAt, &updatedAt)
+	).Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &categoryID, &createdAt, &updatedAt)
 
 	if err != nil {
 		return nil, err
@@ -87,6 +196,11 @@ func GetTaskByID(id int64) (*Task, error) {
 
 	if completedDate.Valid {
 		task.CompletedDate = &completedDate.String
+	}
+
+	if categoryID.Valid {
+		task.CategoryID = &categoryID.Int64
+		task.Category, _ = GetCategoryByID(categoryID.Int64)
 	}
 
 	task.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
@@ -101,7 +215,7 @@ func GetTaskByID(id int64) (*Task, error) {
 // GetTasksByDate retrieves all tasks for a specific date
 func GetTasksByDate(date string) ([]Task, error) {
 	rows, err := db.Query(
-		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, created_at, updated_at 
+		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, category_id, created_at, updated_at 
 		 FROM tasks WHERE assigned_date = ? OR (completed_date = ? AND is_completed = TRUE)
 		 ORDER BY is_completed ASC, created_at ASC`,
 		date, date,
@@ -115,15 +229,21 @@ func GetTasksByDate(date string) ([]Task, error) {
 	for rows.Next() {
 		var task Task
 		var completedDate sql.NullString
+		var categoryID sql.NullInt64
 		var createdAt, updatedAt string
 
-		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &createdAt, &updatedAt)
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &categoryID, &createdAt, &updatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		if completedDate.Valid {
 			task.CompletedDate = &completedDate.String
+		}
+
+		if categoryID.Valid {
+			task.CategoryID = &categoryID.Int64
+			task.Category, _ = GetCategoryByID(categoryID.Int64)
 		}
 
 		task.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
@@ -299,6 +419,63 @@ func UpdateTask(id int64, title, description string) (*Task, error) {
 	return GetTaskByID(id)
 }
 
+// UpdateTaskCategory updates a task's category
+func UpdateTaskCategory(id int64, categoryID *int64) (*Task, error) {
+	_, err := db.Exec(
+		`UPDATE tasks SET category_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+		categoryID, id,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetTaskByID(id)
+}
+
+// GetTasksByCategory retrieves all incomplete tasks for a specific category
+func GetTasksByCategory(categoryID int64) ([]Task, error) {
+	rows, err := db.Query(
+		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, category_id, created_at, updated_at 
+		 FROM tasks WHERE category_id = ? AND is_completed = FALSE
+		 ORDER BY assigned_date ASC, created_at ASC`,
+		categoryID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []Task
+	for rows.Next() {
+		var task Task
+		var completedDate sql.NullString
+		var catID sql.NullInt64
+		var createdAt, updatedAt string
+
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &catID, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		if completedDate.Valid {
+			task.CompletedDate = &completedDate.String
+		}
+
+		if catID.Valid {
+			task.CategoryID = &catID.Int64
+			task.Category, _ = GetCategoryByID(catID.Int64)
+		}
+
+		task.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
+		task.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAt)
+		task.DragDays = CalculateBusinessDays(task.CreatedDate, task.AssignedDate)
+
+		tasks = append(tasks, task)
+	}
+
+	return tasks, nil
+}
+
 // CalculateBusinessDays calculates the number of business days between two dates
 func CalculateBusinessDays(startDate, endDate string) int {
 	start, err := time.Parse("2006-01-02", startDate)
@@ -332,7 +509,7 @@ func CalculateBusinessDays(startDate, endDate string) int {
 // GetCompletedTasksForDate retrieves tasks that were completed on a specific date
 func GetCompletedTasksForDate(date string) ([]Task, error) {
 	rows, err := db.Query(
-		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, created_at, updated_at 
+		`SELECT id, title, description, created_date, assigned_date, completed_date, is_completed, category_id, created_at, updated_at 
 		 FROM tasks WHERE completed_date = ? AND is_completed = TRUE
 		 ORDER BY created_at ASC`,
 		date,
@@ -346,15 +523,21 @@ func GetCompletedTasksForDate(date string) ([]Task, error) {
 	for rows.Next() {
 		var task Task
 		var completedDate sql.NullString
+		var categoryID sql.NullInt64
 		var createdAt, updatedAt string
 
-		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &createdAt, &updatedAt)
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.CreatedDate, &task.AssignedDate, &completedDate, &task.IsCompleted, &categoryID, &createdAt, &updatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		if completedDate.Valid {
 			task.CompletedDate = &completedDate.String
+		}
+
+		if categoryID.Valid {
+			task.CategoryID = &categoryID.Int64
+			task.Category, _ = GetCategoryByID(categoryID.Int64)
 		}
 
 		task.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)

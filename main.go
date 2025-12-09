@@ -50,6 +50,15 @@ func main() {
 			return
 		}
 
+		if strings.HasSuffix(path, "/category") {
+			if r.Method == "PUT" {
+				HandleUpdateTaskCategory(w, r)
+				return
+			}
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
 		switch r.Method {
 		case "GET":
 			HandleGetTask(w, r)
@@ -116,6 +125,40 @@ func main() {
 			return
 		}
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	})
+
+	// Category routes
+	mux.HandleFunc("/api/categories", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			HandleGetCategories(w, r)
+		case "POST":
+			HandleCreateCategory(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/categories/", func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/api/categories/")
+
+		if strings.HasSuffix(path, "/tasks") {
+			if r.Method == "GET" {
+				HandleGetTasksByCategory(w, r)
+				return
+			}
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		switch r.Method {
+		case "PUT":
+			HandleUpdateCategory(w, r)
+		case "DELETE":
+			HandleDeleteCategory(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
 	})
 
 	// Apply CORS middleware

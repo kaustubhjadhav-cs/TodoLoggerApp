@@ -2,6 +2,15 @@ package main
 
 import "time"
 
+// Category represents a task category
+type Category struct {
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	Color     string    `json:"color"`
+	TaskCount int       `json:"task_count,omitempty"` // Number of tasks in this category
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // Task represents a todo item
 type Task struct {
 	ID            int64     `json:"id"`
@@ -11,7 +20,9 @@ type Task struct {
 	AssignedDate  string    `json:"assigned_date"`  // Current date the task is assigned to
 	CompletedDate *string   `json:"completed_date"` // Date when task was completed (nil if not completed)
 	IsCompleted   bool      `json:"is_completed"`
-	DragDays      int       `json:"drag_days"` // Business days the task has been dragged
+	DragDays      int       `json:"drag_days"`   // Business days the task has been dragged
+	CategoryID    *int64    `json:"category_id"` // Optional category
+	Category      *Category `json:"category"`    // Category details (populated on fetch)
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }
